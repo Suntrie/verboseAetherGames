@@ -1,23 +1,13 @@
 /*******************************************************************************
-
  * Copyright (c) 2010, 2013 Sonatype, Inc.
-
  * All rights reserved. This program and the accompanying materials
-
  * are made available under the terms of the Eclipse Public License v1.0
-
  * which accompanies this distribution, and is available at
-
  * http://www.eclipse.org/legal/epl-v10.html
-
  *
-
  * Contributors:
-
  *    Sonatype, Inc. - initial API and implementation
-
  *******************************************************************************/
-
 
 
 import java.io.IOException;
@@ -51,19 +41,13 @@ import org.eclipse.aether.util.graph.manager.DependencyManagerUtils;
 import org.eclipse.aether.util.graph.transformer.ConflictResolver;
 
 
-
 /**
-
  * A dependency visitor that dumps the graph to the console.
-
  */
 
 public class ConsoleDependencyGraphDumper
 
-        implements DependencyVisitor
-
-{
-
+        implements DependencyVisitor {
 
 
     private PrintStream out;
@@ -71,61 +55,51 @@ public class ConsoleDependencyGraphDumper
     private DefaultRepositorySystemSession systemSession;
 
 
-
     private List<ChildInfo> childInfos = new ArrayList<ChildInfo>();
 
 
+    public ConsoleDependencyGraphDumper(RepositorySystem system, DefaultRepositorySystemSession session) {
 
-    public ConsoleDependencyGraphDumper(RepositorySystem system, DefaultRepositorySystemSession session)
+        this(null);
 
-    {
-
-        this( null );
-
-        this.system=system;
-        this.systemSession=session;
+        this.system = system;
+        this.systemSession = session;
     }
 
 
+    public ConsoleDependencyGraphDumper(PrintStream out) {
 
-    public ConsoleDependencyGraphDumper( PrintStream out )
-
-    {
-
-        this.out = ( out != null ) ? out : System.out;
+        this.out = (out != null) ? out : System.out;
 
     }
 
-    public ConsoleDependencyGraphDumper(PrintStream out, RepositorySystem system)
+    public ConsoleDependencyGraphDumper(PrintStream out, RepositorySystem system) {
 
-    {
-
-        this.out = ( out != null ) ? out : System.out;
-        this.system=system;
+        this.out = (out != null) ? out : System.out;
+        this.system = system;
 
     }
 
 
-    public boolean visitEnter( DependencyNode node )
+    public boolean visitEnter(DependencyNode node) {
 
-    {
-
-        DependencyNode winner= (DependencyNode) node.getData().get( ConflictResolver.NODE_DATA_WINNER );
+        DependencyNode winner = (DependencyNode) node.getData().get(ConflictResolver.NODE_DATA_WINNER);
 
 
-        if (winner==null)
-            winner=node;
+        if (winner == null)
+            winner = node;
+
 
         ArtifactRequest artifactRequest = new ArtifactRequest();
 
-        artifactRequest.setArtifact( winner.getArtifact() );
+        artifactRequest.setArtifact(winner.getArtifact());
 
-        artifactRequest.setRepositories( Booter.newRepositories( system, systemSession ) );
+        artifactRequest.setRepositories(Booter.newRepositories(system, systemSession));
 
 
         ArtifactResult artifactResult = null;
         try {
-            artifactResult = system.resolveArtifact( systemSession, artifactRequest );
+            artifactResult = system.resolveArtifact(systemSession, artifactRequest);
         } catch (ArtifactResolutionException e) {
             e.printStackTrace();
         }
@@ -133,17 +107,28 @@ public class ConsoleDependencyGraphDumper
 
         Artifact artifact = artifactResult.getArtifact();
 
-        System.out.println(artifact.getArtifactId() +" - enter, "+ (winner.getDependency()==null?
-                "":node.getDependency().isOptional()) +(winner.getDependency()==null?
-                "":node.getDependency().getScope()));
-
-        if (node.getChildren().size()==0)
-        {
+        System.out.println(artifact.getArtifactId() + " - enter, " + (winner.getDependency() == null ?
+                "" : node.getDependency().isOptional()) + (winner.getDependency() == null ?
+                "" : node.getDependency().getScope()));
 
 
-               /* PackageUtils.getLibraryClassSet("D:\\.m2\\repository\\"+winner.getArtifact().getGroupId().replace(".","\\")+"\\"
+/*
+        System.out.println("Looser1: " + node.getDependency().getArtifact().getArtifactId() + " " + node.getDependency().getArtifact().getVersion());
+        System.out.println("Winner1: " + winner.getDependency().getArtifact().getArtifactId() + " " + winner.getDependency().getArtifact().getVersion());
+*/
+
+        if (node.getChildren().size() == 0) {
+
+
+            try {
+                PackageUtils.getLibraryClassSet("D:\\.m2\\repository\\"+winner.getArtifact().getGroupId().replace(".","\\")+"\\"
                         +winner.getArtifact().getArtifactId()+"\\"+winner.getArtifact().getVersion()+"\\"+ winner.getArtifact().getArtifactId()+"-"+winner.
-                        getArtifact().getVersion()+".jar");*/
+                        getArtifact().getVersion()+".jar");
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            }
         }
 
       /*  out.println( formatIndentation() + formatNode( node ) );
@@ -155,18 +140,13 @@ public class ConsoleDependencyGraphDumper
     }
 
 
+    private String formatIndentation() {
 
-    private String formatIndentation()
+        StringBuilder buffer = new StringBuilder(128);
 
-    {
+        for (Iterator<ChildInfo> it = childInfos.iterator(); it.hasNext(); ) {
 
-        StringBuilder buffer = new StringBuilder( 128 );
-
-        for ( Iterator<ChildInfo> it = childInfos.iterator(); it.hasNext(); )
-
-        {
-
-            buffer.append( it.next().formatIndentation( !it.hasNext() ) );
+            buffer.append(it.next().formatIndentation(!it.hasNext()));
 
         }
 
@@ -175,46 +155,37 @@ public class ConsoleDependencyGraphDumper
     }
 
 
+    private String formatNode(DependencyNode node) {
 
-    private String formatNode( DependencyNode node )
-
-    {
-
-        StringBuilder buffer = new StringBuilder( 128 );
+        StringBuilder buffer = new StringBuilder(128);
 
         Artifact a = node.getArtifact();
 
         Dependency d = node.getDependency();
 
-        buffer.append( a );
+        buffer.append(a);
 
-        if ( d != null && d.getScope().length() > 0 )
+        if (d != null && d.getScope().length() > 0) {
 
-        {
+            buffer.append(" [").append(d.getScope());
 
-            buffer.append( " [" ).append( d.getScope() );
+            if (d.isOptional()) {
 
-            if ( d.isOptional() )
-
-            {
-
-                buffer.append( ", optional" );
+                buffer.append(", optional");
 
             }
 
-            buffer.append( "]" );
+            buffer.append("]");
 
         }
 
         {
 
-            String premanaged = DependencyManagerUtils.getPremanagedVersion( node );
+            String premanaged = DependencyManagerUtils.getPremanagedVersion(node);
 
-            if ( premanaged != null && !premanaged.equals( a.getBaseVersion() ) )
+            if (premanaged != null && !premanaged.equals(a.getBaseVersion())) {
 
-            {
-
-                buffer.append( " (version managed from " ).append( premanaged ).append( ")" );
+                buffer.append(" (version managed from ").append(premanaged).append(")");
 
             }
 
@@ -222,45 +193,35 @@ public class ConsoleDependencyGraphDumper
 
         {
 
-            String premanaged = DependencyManagerUtils.getPremanagedScope( node );
+            String premanaged = DependencyManagerUtils.getPremanagedScope(node);
 
-            if ( premanaged != null && !premanaged.equals( d.getScope() ) )
+            if (premanaged != null && !premanaged.equals(d.getScope())) {
 
-            {
-
-                buffer.append( " (scope managed from " ).append( premanaged ).append( ")" );
+                buffer.append(" (scope managed from ").append(premanaged).append(")");
 
             }
 
         }
 
-        DependencyNode winner = (DependencyNode) node.getData().get( ConflictResolver.NODE_DATA_WINNER );
+        DependencyNode winner = (DependencyNode) node.getData().get(ConflictResolver.NODE_DATA_WINNER);
 
-        if ( winner != null && !ArtifactIdUtils.equalsId( a, winner.getArtifact() ) )
-
-        {
+        if (winner != null && !ArtifactIdUtils.equalsId(a, winner.getArtifact())) {
 
             Artifact w = winner.getArtifact();
 
-            buffer.append( " (conflicts with " );
+            buffer.append(" (conflicts with ");
 
-            if ( ArtifactIdUtils.toVersionlessId( a ).equals( ArtifactIdUtils.toVersionlessId( w ) ) )
+            if (ArtifactIdUtils.toVersionlessId(a).equals(ArtifactIdUtils.toVersionlessId(w))) {
 
-            {
+                buffer.append(w.getVersion());
 
-                buffer.append( w.getVersion() );
+            } else {
 
-            }
-
-            else
-
-            {
-
-                buffer.append( w );
+                buffer.append(w);
 
             }
 
-            buffer.append( ")" );
+            buffer.append(")");
 
         }
 
@@ -269,59 +230,58 @@ public class ConsoleDependencyGraphDumper
     }
 
 
-
-    public boolean visitLeave( DependencyNode node )
-
-    {
+    public boolean visitLeave(DependencyNode node) {
 
 
+        if (!childInfos.isEmpty()) {
 
-        if ( !childInfos.isEmpty() )
-
-        {
-
-            childInfos.remove( childInfos.size() - 1 );
+            childInfos.remove(childInfos.size() - 1);
 
         }
 
-        if ( !childInfos.isEmpty() )
+        if (!childInfos.isEmpty()) {
 
-        {
-
-            childInfos.get( childInfos.size() - 1 ).index++;
+            childInfos.get(childInfos.size() - 1).index++;
 
         }
 
-        DependencyNode winner= (DependencyNode) node.getData().get( ConflictResolver.NODE_DATA_WINNER );
+        DependencyNode winner = (DependencyNode) node.getData().get(ConflictResolver.NODE_DATA_WINNER);
 
-        if (node.getChildren().size()!=0)
-        {
+        if (node.getChildren().size() != 0) {
             try {
-                if (winner==null)
-                    winner=node;
+                if (winner == null)
+                    winner = node;
+                else {
+
+                    System.out.println("Looser: " + node.getDependency().getArtifact().getArtifactId() + " " + node.getDependency().getArtifact().getVersion());
+                    System.out.println("Winner: " + winner.getDependency().getArtifact().getArtifactId() + " " + winner.getDependency().getArtifact().getVersion());
+                }
 
                 ArtifactRequest artifactRequest = new ArtifactRequest();
 
-                artifactRequest.setArtifact( winner.getArtifact() );
+                artifactRequest.setArtifact(winner.getArtifact());
 
-                artifactRequest.setRepositories( Booter.newRepositories( system, systemSession ) );
+                artifactRequest.setRepositories(Booter.newRepositories(system, systemSession));
 
 
-
-                ArtifactResult artifactResult = system.resolveArtifact( systemSession, artifactRequest );
+                ArtifactResult artifactResult = system.resolveArtifact(systemSession, artifactRequest);
 
 
                 Artifact artifact = artifactResult.getArtifact();
 
 
-
-                System.out.println(node.getArtifact().getArtifactId() +" - leave"+(winner.getDependency()==null?
-                        "":node.getDependency().getScope()));
-             /*   PackageUtils.getLibraryClassSet("D:\\.m2\\repository\\"+winner.getArtifact().getGroupId().replace(".","\\")+"\\"
+                System.out.println(node.getArtifact().getArtifactId() + " - leave" + (winner.getDependency() == null ?
+                        "" : node.getDependency().getScope()));
+                PackageUtils.getLibraryClassSet("D:\\.m2\\repository\\"+winner.getArtifact().getGroupId().replace(".","\\")+"\\"
                         +winner.getArtifact().getArtifactId()+"\\"+winner.getArtifact().getVersion()+"\\"+ winner.getArtifact().getArtifactId()+"-"+winner.getArtifact().getVersion()+".jar");
-*/            } catch (ArtifactResolutionException e) {
+
+            } catch (ArtifactResolutionException e) {
                 e.printStackTrace();
-            } catch (Error e){
+            } catch (Error e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (ClassNotFoundException e) {
                 e.printStackTrace();
             }
         }
@@ -331,40 +291,27 @@ public class ConsoleDependencyGraphDumper
     }
 
 
-
-    private static class ChildInfo
-
-    {
-
+    private static class ChildInfo {
 
 
         final int count;
 
 
-
         int index;
 
 
-
-        public ChildInfo( int count )
-
-        {
+        public ChildInfo(int count) {
 
             this.count = count;
 
         }
 
 
-
-        public String formatIndentation( boolean end )
-
-        {
+        public String formatIndentation(boolean end) {
 
             boolean last = index + 1 >= count;
 
-            if ( end )
-
-            {
+            if (end) {
 
                 return last ? "\\- " : "+- ";
 
@@ -375,9 +322,7 @@ public class ConsoleDependencyGraphDumper
         }
 
 
-
     }
-
 
 
 }

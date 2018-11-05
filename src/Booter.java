@@ -1,8 +1,14 @@
 import org.eclipse.aether.DefaultRepositorySystemSession;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
+import org.eclipse.aether.collection.DependencySelector;
 import org.eclipse.aether.repository.LocalRepository;
 import org.eclipse.aether.repository.RemoteRepository;
+import org.eclipse.aether.util.graph.selector.AndDependencySelector;
+import org.eclipse.aether.util.graph.selector.ExclusionDependencySelector;
+import org.eclipse.aether.util.graph.selector.ScopeDependencySelector;
+import org.eclipse.aether.util.graph.selector.StaticDependencySelector;
+import org.eclipse.aether.util.graph.traverser.StaticDependencyTraverser;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -13,25 +19,27 @@ import static org.apache.maven.repository.internal.MavenRepositorySystemUtils.ne
 public class Booter {
 
 
-
-    public static DefaultRepositorySystemSession newRepositorySystemSession(RepositorySystem system )
-
-    {
+    public static DefaultRepositorySystemSession newRepositorySystemSession(RepositorySystem system) {
 
         DefaultRepositorySystemSession session = newSession();
 
 
+        LocalRepository localRepo = new LocalRepository("D:\\.m2\\repository");
 
-        LocalRepository localRepo = new LocalRepository( "D:\\.m2\\repository" );
-
-        session.setLocalRepositoryManager( system.newLocalRepositoryManager( session, localRepo ) );
-
+        session.setLocalRepositoryManager(system.newLocalRepositoryManager(session, localRepo));
 
 
-        session.setTransferListener( new ConsoleTransferListener() );
+        DependencySelector depFilter =
+                new AndDependencySelector(new ScopeDependencySelector("test"),
+                         new ExclusionDependencySelector());
+        session.setDependencySelector(depFilter);
 
-        session.setRepositoryListener( new ConsoleRepositoryListener() );
 
+        session.setDependencyTraverser(new StaticDependencyTraverser(true));
+
+        session.setTransferListener(new ConsoleTransferListener());
+
+        session.setRepositoryListener(new ConsoleRepositoryListener());
 
 
         // uncomment to generate dirty trees
@@ -39,28 +47,21 @@ public class Booter {
         // session.setDependencyGraphTransformer( null );
 
 
-
         return session;
 
     }
 
 
+    public static List<RemoteRepository> newRepositories(RepositorySystem system, RepositorySystemSession session) {
 
-    public static List<RemoteRepository> newRepositories(RepositorySystem system, RepositorySystemSession session )
-
-    {
-
-        return new ArrayList<RemoteRepository>( Arrays.asList( newCentralRepository() ) );
+        return new ArrayList<RemoteRepository>(Arrays.asList(newCentralRepository()));
 
     }
 
 
+    private static RemoteRepository newCentralRepository() {
 
-    private static RemoteRepository newCentralRepository()
-
-    {
-
-        return new RemoteRepository.Builder( "central", "default", "http://central.maven.org/maven2/" ).build();
+        return new RemoteRepository.Builder("central", "default", "http://central.maven.org/maven2/").build();
 
     }
 }
