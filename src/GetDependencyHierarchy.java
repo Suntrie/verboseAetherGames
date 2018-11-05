@@ -87,7 +87,7 @@ public class GetDependencyHierarchy {
         session.setConfigProperty(DependencyManagerUtils.CONFIG_PROP_VERBOSE, true);
 
 
-        Artifact artifact = new DefaultArtifact("io.micrometer:micrometer-core:jar:1.0.2");
+        Artifact artifact = new DefaultArtifact("com.rabbitmq:amqp-client:5.4.3");
 
 
         ArtifactDescriptorRequest descriptorRequest = new ArtifactDescriptorRequest();

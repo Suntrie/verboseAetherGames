@@ -110,43 +110,40 @@ public class ConsoleDependencyGraphDumper
 
     {
 
-        System.out.println(node.getArtifact().getArtifactId() +" - enter");
+        DependencyNode winner= (DependencyNode) node.getData().get( ConflictResolver.NODE_DATA_WINNER );
 
+
+        if (winner==null)
+            winner=node;
+
+        ArtifactRequest artifactRequest = new ArtifactRequest();
+
+        artifactRequest.setArtifact( winner.getArtifact() );
+
+        artifactRequest.setRepositories( Booter.newRepositories( system, systemSession ) );
+
+
+        ArtifactResult artifactResult = null;
+        try {
+            artifactResult = system.resolveArtifact( systemSession, artifactRequest );
+        } catch (ArtifactResolutionException e) {
+            e.printStackTrace();
+        }
+
+
+        Artifact artifact = artifactResult.getArtifact();
+
+        System.out.println(artifact.getArtifactId() +" - enter, "+ (winner.getDependency()==null?
+                "":node.getDependency().isOptional()) +(winner.getDependency()==null?
+                "":node.getDependency().getScope()));
 
         if (node.getChildren().size()==0)
         {
-            /*try {
-
-               DependencyNode winner= (DependencyNode) node.getData().get( ConflictResolver.NODE_DATA_WINNER );
 
 
-                if (winner==null)
-                    winner=node;
-
-
-                ArtifactRequest artifactRequest = new ArtifactRequest();
-
-                artifactRequest.setArtifact( winner.getArtifact() );
-
-                artifactRequest.setRepositories( Booter.newRepositories( system, systemSession ) );
-
-
-
-                ArtifactResult artifactResult = system.resolveArtifact( systemSession, artifactRequest );
-
-
-                Artifact artifact = artifactResult.getArtifact();
-
-
-
-                PackageUtils.getLibraryClassSet("D:\\.m2\\repository\\"+winner.getArtifact().getGroupId().replace(".","\\")+"\\"
+               /* PackageUtils.getLibraryClassSet("D:\\.m2\\repository\\"+winner.getArtifact().getGroupId().replace(".","\\")+"\\"
                         +winner.getArtifact().getArtifactId()+"\\"+winner.getArtifact().getVersion()+"\\"+ winner.getArtifact().getArtifactId()+"-"+winner.
-                        getArtifact().getVersion()+".jar");
-            } catch (IOException | ArtifactResolutionException e) {
-                e.printStackTrace();
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-            }*/
+                        getArtifact().getVersion()+".jar");*/
         }
 
       /*  out.println( formatIndentation() + formatNode( node ) );
@@ -277,9 +274,7 @@ public class ConsoleDependencyGraphDumper
 
     {
 
-        System.out.println(node.getArtifact().getArtifactId() +" - leave");
 
-        /*
 
         if ( !childInfos.isEmpty() )
 
@@ -319,16 +314,17 @@ public class ConsoleDependencyGraphDumper
                 Artifact artifact = artifactResult.getArtifact();
 
 
-                PackageUtils.getLibraryClassSet("D:\\.m2\\repository\\"+winner.getArtifact().getGroupId().replace(".","\\")+"\\"
+
+                System.out.println(node.getArtifact().getArtifactId() +" - leave"+(winner.getDependency()==null?
+                        "":node.getDependency().getScope()));
+             /*   PackageUtils.getLibraryClassSet("D:\\.m2\\repository\\"+winner.getArtifact().getGroupId().replace(".","\\")+"\\"
                         +winner.getArtifact().getArtifactId()+"\\"+winner.getArtifact().getVersion()+"\\"+ winner.getArtifact().getArtifactId()+"-"+winner.getArtifact().getVersion()+".jar");
-            } catch (IOException | ArtifactResolutionException e) {
+*/            } catch (ArtifactResolutionException e) {
                 e.printStackTrace();
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-            }catch (Error e){
+            } catch (Error e){
                 e.printStackTrace();
             }
-        }*/
+        }
 
         return true;
 
